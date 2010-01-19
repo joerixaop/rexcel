@@ -10,7 +10,7 @@ module Rexcel
       @col_default_width = 60
       @default_style = {}
     end
-    
+
     def work_on_name(name)
       name = name.gsub("\n", " ")
       invalid_char = [':', "\\", "/"]
@@ -19,9 +19,9 @@ module Rexcel
       end
       name
     end
-    
+
     def add_line(element, params = {}, sort_list = nil, title = {:title => false, :params => {}})
-      #if we have passed a active-record object, array is a array of object. We need the attributes 
+      #if we have passed a active-record object, array is a array of object. We need the attributes
       #of that object:
       if element.respond_to?(:attributes)
         line = element.attributes
@@ -50,7 +50,7 @@ module Rexcel
         @array << sorted_line
       end
     end
-    
+
     def add_lines(array, params = {}, sort_list = nil, title = {:title => false, :params => {}})
       #if the line is a hash and if we ask for title, we add a line with the titles. (keys of the hash)
       if title[:title]
@@ -78,9 +78,9 @@ module Rexcel
           end
         end
       end
-      
+
       for element in array
-        #if we have passed a active-record object, array is a array of object. We need the attributes 
+        #if we have passed a active-record object, array is a array of object. We need the attributes
         #of that object:
         if element.respond_to?(:attributes)
           line = element.attributes
@@ -100,7 +100,7 @@ module Rexcel
         end
       end
     end
-    
+
     def set_col_width(hash)
       if hash.class == Hash
         if hash["default"] && hash["default"].respond_to?(:to_f)
@@ -124,7 +124,7 @@ module Rexcel
         end#do key
       end#if hash.class
     end#def
-    
+
     def nbr_col
       nbr = 0
       @array.each do |array|
@@ -132,7 +132,7 @@ module Rexcel
       end
       return nbr
     end
-    
+
     def add_empty(nbr = 1, params = {})
       if params.class == Hash
         @array << [(DefaultStyle.merge(params)).merge({:colspan => nbr})]
@@ -140,18 +140,18 @@ module Rexcel
         @array << [DefaultStyle.merge({:colspan => nbr})]
       end
     end
-    
+
     def skip(nbr = 1)
       nbr.times do
         @array << [DefaultStyle]
       end
     end
-    
+
     #this method will set the default styles:
     def set_default(hash)
       @default_style = @default_style.merge(hash)
     end
-    
+
     private
     def sort_hash(hash, sort_array)
       new = []
@@ -161,7 +161,7 @@ module Rexcel
       end
       new
     end
-    
+
     def add_clone_line(element, hash)
       res = []
       array = (element.class == Hash) ? element.values : element
@@ -179,7 +179,7 @@ module Rexcel
       @array<<res
     end
   end#class
-  
+
   class Workbook
     Vertical = ["center", "top", "bottom"]
     Horizontal = ["left", "right", "justified", "center"]
@@ -190,33 +190,33 @@ module Rexcel
     @@default_style = DefaultStyle.clone
     #the styles are horizontal-vertical-bold-italic-underline-size-font-back_color-color-is_border-border_left-border_right-border_top-border_bottom-border_color-border_style-border_weight"
     #ex: "left-top-true-false-double-12-Arial-#000000-#000000-true-true-true-false-false-#000000-continuous-0
-    
+
     def initialize
       @worksheets = []
       @last_line = []
       @current_line = []
       @nbr_of_worksheet = 0
     end
-    
+
     def add_worksheet(sheetname = "Worksheet")
       @nbr_of_worksheet += 1
       worksheet = Worksheet.new(@nbr_of_worksheet.to_s + "-" + sheetname)
       @worksheets << worksheet
       return worksheet
     end
-    
+
     def build
       buffer = ""
       xml = Builder::XmlMarkup.new(buffer)
-      xml.instruct! :xml, :version=>"1.0", :encoding=>"UTF-8" 
+      xml.instruct! :xml, :version=>"1.0", :encoding=>"UTF-8"
       xml.Workbook({
-          'xmlns'      => "urn:schemas-microsoft-com:office:spreadsheet", 
+          'xmlns'      => "urn:schemas-microsoft-com:office:spreadsheet",
           'xmlns:o'    => "urn:schemas-microsoft-com:office:office",
-          'xmlns:x'    => "urn:schemas-microsoft-com:office:excel",    
+          'xmlns:x'    => "urn:schemas-microsoft-com:office:excel",
           'xmlns:html' => "http://www.w3.org/TR/REC-html40",
-          'xmlns:ss'   => "urn:schemas-microsoft-com:office:spreadsheet" 
+          'xmlns:ss'   => "urn:schemas-microsoft-com:office:spreadsheet"
         }) do
-      
+
         xml.Styles do
           #We initialize all the styles we will need. And only those that we will need.
           get_styles.each do |style|
@@ -243,7 +243,7 @@ module Rexcel
               hash[:border_color] = array[14]
               hash[:border_style] = array[15].capitalize
               hash[:border_weight] = array[16].to_s
-              
+
               xml.Alignment 'ss:Horizontal' => hash[:horizontal], 'ss:Vertical' => hash[:vertical]
               xml.Font 'ss:Bold' => hash[:bold], 'ss:Italic' => hash[:italic], 'ss:Underline' => hash[:underline], 'ss:Size' => hash[:size], 'ss:FontName' => hash[:font], 'ss:Color' => hash[:color]
               if hash[:back_color]
@@ -272,9 +272,9 @@ module Rexcel
            xml << worksheetFromArray(object)
          end
       end
-      return xml.target! 
+      return xml.target!
     end#build
-    
+
     #this method will set the default styles:
     def set_default(hash)
       @@default_style = @@default_style.merge(hash)
@@ -315,7 +315,7 @@ module Rexcel
                     xm.Cell arguments do
                       xm.Data @value, 'ss:Type' => 'String'
                     end#xm.Cell do
-                  else 
+                  else
                     if value.respond_to?(:to_s)
                       arguments = get_arguments(@@default_style, object, pos)
                       xm.Cell arguments do
@@ -335,8 +335,8 @@ module Rexcel
         end #table
       end #worksheet do
       return xm.target!  # retrieves the buffer
-    end#def 
-    
+    end#def
+
     def get_arguments(value, worksheet, pos = nil)
       if value.class == Array
         @value = value[0].respond_to?(:to_s) ? value[0].to_s : ""
@@ -354,9 +354,9 @@ module Rexcel
       args['ss:StyleID'] = get_arguments_name(params, worksheet)
       args['ss:Index'] = get_index(pos)
       @current_line << {:row => row, :col => col, :index => args['ss:Index']}
-      args      
+      args
     end#def get_arguments
-    
+
     def get_styles
       styles = Array.new
       for object in @worksheets
@@ -370,17 +370,17 @@ module Rexcel
               else
             end#case
           end#for value in
-        end#for row 
+        end#for row
       end#for object
       #on ajoute le style par default:
       styles << get_arguments_name(@@default_style)
       styles.uniq
     end#end get_styles
-    
+
     def is_boolean?(arg)
       res = ([true, false].include? arg) ? true : false
     end
-    
+
     def get_arguments_name(value, worksheet = nil)
       default_style = (worksheet && worksheet.default_style) ? @@default_style.merge(worksheet.default_style) : @@default_style
       horizontal = (Horizontal.include? value[:horizontal]) ? value[:horizontal] : default_style[:horizontal]
@@ -403,29 +403,29 @@ module Rexcel
       is_border = border_left || border_right || border_top || border_bottom
       return  "#{horizontal}-#{vertical}-#{bold}-#{italic}-#{underline}-#{size}-#{font}-#{back_color}-#{color}-#{is_border}-#{border_left}-#{border_right}-#{border_top}-#{border_bottom}-#{border_color}-#{border_style}-#{border_weight}"
     end
-    
+
     def get_index(pos)
       default = {:row => 0, :col => 0, :index => 0}
       previous_value = @current_line[positive(pos-1)].nil? ? default : @current_line[positive(pos-1)]
       next_index = previous_value[:index] + previous_value[:col] + 1
-      
+
       #Here is the main calculation of the index of the current cell:
       #index = next_index + (binary(previous_line[:row])*(previous_line[:col]+1))
       previous_line = get_previous_line(next_index)
-      while (binary(previous_line[:row])*(previous_line[:col]+1)) > 0 
+      while (binary(previous_line[:row])*(previous_line[:col]+1)) > 0
         next_index += (binary(previous_line[:row])*(previous_line[:col]+1))
         previous_line = get_previous_line(next_index)
       end
       return next_index
     end
-    
+
     def get_previous_line(index)
       #We will search for a hash in last_line that has :index eaqual to index. It may has none.
       default = {:row => 0, :col => 0, :index => 0}
       result = @last_line.select {|val| val[:index] == index}
       return result[0].nil? ? default : result[0]
     end
-    
+
     def current_become_last
       pos = 0
       max = (((@last_line.last)&&(@last_line.last[:index] > @current_line.last[:index]))) ? @last_line.last[:index] : @current_line.last[:index]
@@ -441,17 +441,17 @@ module Rexcel
         end
       end#max_times do |a|
       @last_line = temp_line
-      @current_line = Array.new  
+      @current_line = Array.new
     end
-    
+
     def positive(val)
       return val<0 ? 0 : val
     end
-    
+
     def binary(val)
       return (val == 0) ? 0 : 1
     end
-    
+
     def is_in?(array, index)
       return array.select {|v| v[:index] == index}[0]
     end
